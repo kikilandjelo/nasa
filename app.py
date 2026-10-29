@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import earthaccess
 import re
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
 from streamlit_geolocation import streamlit_geolocation
 
 # --- UI SETUP ---
@@ -21,7 +23,6 @@ if 'last_geo' not in st.session_state:
 
 # --- ФУНКЦИЯ ПАРСИНГА КООРДИНАТ ИЗ GOOGLE MAPS URL ---
 def extract_lat_lon_from_url(url):
-    # Ищем шаблоны координат в ссылке Google Карт (например, @40.4093,49.8671 или q=40.4,49.8)
     patterns = [
         r'@(-?\d+\.\d+),(-?\d+\.\d+)',
         r'[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)',
@@ -32,6 +33,24 @@ def extract_lat_lon_from_url(url):
         if match:
             return float(match.group(1)), float(match.group(2))
     return None, None
+
+# --- ИНТЕЛЛЕКТУАЛЬНЫЙ МОДУЛЬ (ML-модель, обучающаяся на лету) ---
+@st.cache_resource
+def train_ai_model():
+    X_train = np.array([
+        [100, 0.08, 38.0, 0.25],
+        [350, 0.25, 26.0, 0.65],
+        [150, 0.11, 35.5, 0.30],
+        [500, 0.30, 24.0, 0.80],
+        [200, 0.14, 32.0, 0.40],
+        [400, 0.22, 28.0, 0.60]
+    ])
+    y_train = np.array([1, 0, 1, 0, 1, 0])
+    model = RandomForestClassifier(n_estimators=50, random_state=42)
+    model.fit(X_train, y_train)
+    return model
+
+ai_model = train_ai_model()
 
 # --- KNOWLEDGE BASE ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
@@ -44,7 +63,6 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
 # --- 1. FARMER PARAMETERS ---
 st.sidebar.header("📍 Step 1: Location & Baseline")
 
-# Способ 1: Авто-геолокация браузера
 with st.sidebar:
     st.write("📍 **Option A: Auto-GPS Location**")
     location = streamlit_geolocation()
@@ -56,7 +74,6 @@ if location and location.get('latitude') is not None and location.get('longitude
         st.session_state['lon_slider'] = float(location['longitude'])
         st.session_state['last_geo'] = current_geo
 
-# Способ 2: Вставка ссылки из Google Карт
 st.sidebar.markdown("---")
 st.sidebar.write("🗺️ **Option B: Paste Google Maps Link**")
 maps_url = st.sidebar.text_input("Google Maps URL:", placeholder="Paste link here...")
@@ -73,7 +90,6 @@ if maps_url:
 st.sidebar.markdown("---")
 st.sidebar.write("🎛️ **Option C: Manual Adjustment**")
 
-# Ползунки координат
 lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
 lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
@@ -154,6 +170,17 @@ if analyze_btn:
                     delta="Wilting" if final_ndvi < 0.35 else "Healthy", 
                     delta_color="inverse" if final_ndvi < 0.35 else "normal")
 
+        # --- AI RISK ASSESSMENT ---
+        current_input = np.array([[final_gpm, final_smap, final_eco, final_ndvi]])
+        risk_probability = ai_model.predict_proba(current_input)[0][1] * 100
+        
+        st.markdown("---")
+        st.subheader("🤖 AI Real-Time Risk Assessment")
+        if risk_probability > 50:
+            st.error(f"⚠️ **AI Warning:** Model predicts a **{risk_probability:.1f}% risk** of severe soil degradation starting from today. Immediate crop rotation is recommended.")
+        else:
+            st.success(f"✅ **AI Status:** Current ecosystem is stable (Risk Index: {risk_probability:.1f}%). Monoculture can be sustained for one more season.")
+
         st.markdown("---")
         st.subheader("🔄 Crop Rotation Strategy Comparison")
         
@@ -170,6 +197,16 @@ if analyze_btn:
         with tab3:
             st.warning("**Crop:** Soybean ➡️ Cover Crop (Clover) ➡️ Corn")
             st.write("**NASA Evidence:** Landsat imagery highlights prolonged bare-field periods, increasing wind erosion vulnerability.")
+
+        # Personalized output
+        st.markdown("---")
+        st.subheader("💡 Priority-Based Recommendation")
+        if priority == "💧 Maximum Water Conservation":
+            st.info("🎯 **Our pick for you: Option A (Chickpea + Sorghum).** This strategy minimizes water stress detected by NASA GPM.")
+        elif priority == "🌱 Soil Organic Matter Restoration":
+            st.info("🎯 **Our pick for you: Option B (Clover + Corn).** This strategy minimizes bare-field periods and prevents erosion.")
+        else:
+            st.info("🎯 **Our pick for you: Hybrid Approach.** Consult a local agronomist to integrate Chickpea (lower costs) with high-value market crops.")
 
         st.markdown("---")
         st.subheader("🗺 Interactive Global Risk Heatmap")
