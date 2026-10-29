@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import earthaccess
+import re
 from streamlit_geolocation import streamlit_geolocation
 
 # --- UI SETUP ---
@@ -16,7 +17,21 @@ if 'lat_slider' not in st.session_state:
 if 'lon_slider' not in st.session_state:
     st.session_state['lon_slider'] = 47.57
 if 'last_geo' not in st.session_state:
-    st.session_state['last_geo'] = None # Переменная для хранения последней геолокации
+    st.session_state['last_geo'] = None
+
+# --- ФУНКЦИЯ ПАРСИНГА КООРДИНАТ ИЗ GOOGLE MAPS URL ---
+def extract_lat_lon_from_url(url):
+    # Ищем шаблоны координат в ссылке Google Карт (например, @40.4093,49.8671 или q=40.4,49.8)
+    patterns = [
+        r'@(-?\d+\.\d+),(-?\d+\.\d+)',
+        r'[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)',
+        r'[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)'
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return float(match.group(1)), float(match.group(2))
+    return None, None
 
 # --- KNOWLEDGE BASE ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
@@ -29,21 +44,36 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
 # --- 1. FARMER PARAMETERS ---
 st.sidebar.header("📍 Step 1: Location & Baseline")
 
+# Способ 1: Авто-геолокация браузера
 with st.sidebar:
-    st.write("📍 **Auto-Locate Me:** (Click the target icon)")
+    st.write("📍 **Option A: Auto-GPS Location**")
     location = streamlit_geolocation()
 
-# Логика разблокировки ползунков
 if location and location.get('latitude') is not None and location.get('longitude') is not None:
     current_geo = (location['latitude'], location['longitude'])
-    
-    # Обновляем ползунки ТОЛЬКО если данные геолокации новые (отличаются от предыдущих)
     if st.session_state['last_geo'] != current_geo:
         st.session_state['lat_slider'] = float(location['latitude'])
         st.session_state['lon_slider'] = float(location['longitude'])
         st.session_state['last_geo'] = current_geo
 
-# Ползунки свободны для ручного ввода
+# Способ 2: Вставка ссылки из Google Карт
+st.sidebar.markdown("---")
+st.sidebar.write("🗺️ **Option B: Paste Google Maps Link**")
+maps_url = st.sidebar.text_input("Google Maps URL:", placeholder="Paste link here...")
+
+if maps_url:
+    m_lat, m_lon = extract_lat_lon_from_url(maps_url)
+    if m_lat is not None and m_lon is not None:
+        st.session_state['lat_slider'] = m_lat
+        st.session_state['lon_slider'] = m_lon
+        st.sidebar.success(f"Loaded from Maps: {m_lat:.4f}, {m_lon:.4f}")
+    else:
+        st.sidebar.error("Could not extract coordinates. Check link format.")
+
+st.sidebar.markdown("---")
+st.sidebar.write("🎛️ **Option C: Manual Adjustment**")
+
+# Ползунки координат
 lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
 lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
