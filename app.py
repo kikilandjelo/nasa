@@ -27,9 +27,10 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
 # --- 1. FARMER PARAMETERS ---
 st.sidebar.header("📍 Step 1: Location & Baseline")
 
-# Настоящая геолокация браузера пользователя
-st.sidebar.write("📍 **Get My Exact Location:**")
-location = streamlit_geolocation()
+# Правильное размещение виджета геолокации в сайдбаре
+with st.sidebar:
+    st.write("📍 **Auto-Locate Me:** (Click the target icon)")
+    location = streamlit_geolocation()
 
 # Если браузер выдал координаты, обновляем состояние сессии
 if location and location.get('latitude') is not None and location.get('longitude') is not None:
