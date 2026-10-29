@@ -1,4 +1,4 @@
 streamlit
 pandas
 earthaccess
-requests
+streamlit-geolocation
