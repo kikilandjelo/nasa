@@ -1,4 +1,6 @@
 streamlit
 pandas
 earthaccess
+requests
 streamlit-geolocation
+scikit-learn
