@@ -10,11 +10,11 @@ st.markdown("**NASA Space Apps Challenge 2026 | Category: Field Shift**")
 
 st.info("⚠️ **Disclaimer:** AgriShift is a Decision-Support Tool. AI predictions are based on NASA Earth observations to help identify patterns, but they **do not replace** the expertise of local agronomists and farmer judgment.")
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ ---
-if 'lat' not in st.session_state:
-    st.session_state['lat'] = 40.14
-if 'lon' not in st.session_state:
-    st.session_state['lon'] = 47.57
+# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ (ЖЕСТКАЯ ПРИВЯЗКА КЛЮЧЕЙ) ---
+if 'lat_slider' not in st.session_state:
+    st.session_state['lat_slider'] = 40.14
+if 'lon_slider' not in st.session_state:
+    st.session_state['lon_slider'] = 47.57
 
 # --- KNOWLEDGE BASE ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
@@ -27,24 +27,18 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
 # --- 1. FARMER PARAMETERS ---
 st.sidebar.header("📍 Step 1: Location & Baseline")
 
-# Правильное размещение виджета геолокации в сайдбаре
 with st.sidebar:
     st.write("📍 **Auto-Locate Me:** (Click the target icon)")
     location = streamlit_geolocation()
 
-# Если браузер выдал координаты, обновляем состояние сессии
+# Принудительное обновление ключей ползунков, если получена геолокация от браузера
 if location and location.get('latitude') is not None and location.get('longitude') is not None:
-    st.session_state['lat'] = float(location['latitude'])
-    st.session_state['lon'] = float(location['longitude'])
+    st.session_state['lat_slider'] = float(location['latitude'])
+    st.session_state['lon_slider'] = float(location['longitude'])
 
-# Глобальные ползунки координат, привязанные к состоянию сессии
-lat = st.sidebar.slider("Latitude", -90.0, 90.0, st.session_state['lat'])
-lon = st.sidebar.slider("Longitude", -180.0, 180.0, st.session_state['lon'])
-
-# Синхронизация ручного ввода со стейтом
-if lat != st.session_state['lat'] or lon != st.session_state['lon']:
-    st.session_state['lat'] = lat
-    st.session_state['lon'] = lon
+# Ползунки теперь жестко привязаны к ключам. Когда кнопка меняет ключ, ползунок двигается сам.
+lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
+lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
 current_crop = st.sidebar.selectbox("Current (Baseline) Crop:", ["Cotton", "Wheat", "Corn"])
 
