@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 
 # --- UI SETUP ---
 st.set_page_config(page_title="AgriShift | Field Shift Challenge", page_icon="🌾", layout="wide")
@@ -37,15 +36,38 @@ analyze_btn = st.sidebar.button("🚀 Analyze NASA Data")
 if analyze_btn:
     with st.spinner('Fusing NASA Data (GPM, SMAP, ECOSTRESS, Landsat)...'):
         import time
-        time.sleep(2) 
+        time.sleep(1.5) 
+        
+        # Динамическая генерация спутниковых данных (меняется при каждом клике)
+        sim_gpm = np.random.uniform(150, 400)
+        sim_smap = np.random.uniform(0.08, 0.25)
+        sim_eco = np.random.uniform(25, 38)
+        sim_ndvi = np.random.uniform(0.2, 0.7)
         
         # Satellite Metrics Analytics
         st.subheader("🛰 NASA Earth Observations Integration")
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric(label="GPM (Seasonal Rainfall)", value="210 mm", delta="-18% (Anomaly)", delta_color="inverse")
-        col2.metric(label="SMAP (Soil Moisture)", value="0.12 m³/m³", delta="Critically Low", delta_color="inverse")
-        col3.metric(label="ECOSTRESS (Surface Temp)", value="32 °C", delta="+2.5 °C (Stress)", delta_color="inverse")
-        col4.metric(label="Landsat (NDVI)", value="0.41", delta="Wilting", delta_color="inverse")
+        
+        # Вывод метрик с обновляемыми цифрами
+        col1.metric(label="GPM (Seasonal Rainfall)", 
+                    value=f"{sim_gpm:.0f} mm", 
+                    delta=f"{np.random.randint(-25, -5)}% (Anomaly)", 
+                    delta_color="inverse")
+                    
+        col2.metric(label="SMAP (Soil Moisture)", 
+                    value=f"{sim_smap:.2f} m³/m³", 
+                    delta="Critically Low" if sim_smap < 0.15 else "Low", 
+                    delta_color="inverse")
+                    
+        col3.metric(label="ECOSTRESS (Surface Temp)", 
+                    value=f"{sim_eco:.1f} °C", 
+                    delta=f"+{np.random.uniform(1.0, 3.5):.1f} °C (Stress)", 
+                    delta_color="inverse")
+                    
+        col4.metric(label="Landsat (NDVI)", 
+                    value=f"{sim_ndvi:.2f}", 
+                    delta="Wilting" if sim_ndvi < 0.4 else "Stress", 
+                    delta_color="inverse")
 
         st.markdown("---")
         st.subheader("🔄 Crop Rotation Strategy Comparison")
