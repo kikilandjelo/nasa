@@ -14,7 +14,7 @@ st.markdown("**NASA Space Apps Challenge 2026 | Category: Field Shift**")
 
 st.info("⚠️ **Disclaimer:** AgriShift is a Decision-Support Tool. AI predictions are based on NASA Earth observations to help identify patterns, but they **do not replace** the expertise of local agronomists and farmer judgment.")
 
-# --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ ---
+# --- STATE INITIALIZATION ---
 if 'lat_slider' not in st.session_state:
     st.session_state['lat_slider'] = 40.14
 if 'lon_slider' not in st.session_state:
@@ -22,7 +22,7 @@ if 'lon_slider' not in st.session_state:
 if 'last_geo' not in st.session_state:
     st.session_state['last_geo'] = None
 
-# --- ФУНКЦИЯ ПАРСИНГА КООРДИНАТ ИЗ GOOGLE MAPS URL ---
+# --- PARSE LAT/LON FROM GOOGLE MAPS URL ---
 def extract_lat_lon_from_url(url):
     patterns = [
         r'@(-?\d+\.\d+),(-?\d+\.\d+)',
@@ -35,7 +35,7 @@ def extract_lat_lon_from_url(url):
             return float(match.group(1)), float(match.group(2))
     return None, None
 
-# --- ML-МОДЕЛЬ ОЦЕНКИ РИСКОВ ---
+# --- ML RISK ASSESSMENT MODEL ---
 @st.cache_resource
 def train_ai_model():
     X_train = np.array([
@@ -53,29 +53,20 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- ПОЛНОСТЬЮ ДИНАМИЧЕСКИЙ ИИ-АНАЛИЗАТОР РАСТЕНИЙ ---
+# --- DYNAMIC AI CROP & STRATEGY GENERATOR ---
 def generate_crop_ai_analysis(crop, gpm, vwc, temp, ndvi, risk, priority):
-    # Динамический ИИ-вердикт для выбранного пользователем растения
-    if vwc < 15 and "Rice" in crop:
-        compatibility = "⚠️ Critical Mismatch: Rice requires saturated soils, but current SMAP indicates severe drought risk."
-    elif vwc > 30 and "Cactus" in crop:
-        compatibility = "⚠️ High Risk: Cacti will suffer from root rot in soils with this moisture level."
-    else:
-        compatibility = f"✅ Viable under managed irrigation. Evaluated resilience index matches current regional climate patterns."
-
-    analysis_text = f"The neural model analyzed **{crop}** against live NASA telemetry (GPM: {gpm:.0f} mm, SMAP VWC: {vwc:.1f}%, ECOSTRESS Temp: {temp:.1f} °C). {compatibility}"
+    analysis_text = f"The neural model evaluated **{crop}** against live NASA telemetry (GPM Rainfall: {gpm:.0f} mm, SMAP Soil Moisture: {vwc:.1f}% VWC, ECOSTRESS Temp: {temp:.1f} °C, NDVI Health: {ndvi:.2f}). Based on current environmental stress and regional microclimate, cultivating **{crop}** presents a dynamic risk index of {risk:.1f}%."
     
-    # Динамические рекомендации севооборота на базе выбранного растения
-    opt_a = f"**Adaptive Water-Saving Rotation for {crop}:**\n\n* **Phase 1:** Harvest {crop}.\n* **Phase 2:** Introduce drought-tolerant legumes (such as Chickpea or Lentils) to naturally fix nitrogen without over-extracting soil water ({vwc:.1f}% VWC).\n* **Phase 3:** Rotate to deep-root Sorghum to capture deep sub-surface moisture."
+    opt_a = f"**AI-Optimized Water-Saving Rotation for {crop}:**\n\n* **Phase 1:** Harvest baseline {crop} and initiate residue retention.\n* **Phase 2:** Introduce drought-tolerant legumes (e.g., Chickpea, Lentils, or Cowpeas) to fix soil nitrogen without over-depleting the root zone ({vwc:.1f}% VWC).\n* **Phase 3:** Transition to deep-root Sorghum or Millet to maximize water-use efficiency under {gpm:.0f} mm rainfall constraints."
     
-    opt_b = f"**Adaptive Soil-Restoring Rotation for {crop}:**\n\n* **Phase 1:** Transition from {crop} residue management.\n* **Phase 2:** Plant multi-species cover crops (Clover/Vetch) to boost vegetation health from current NDVI ({ndvi:.2f}).\n* **Phase 3:** High-yield rotational grain to capitalize on restored organic matter."
+    opt_b = f"**AI-Optimized Soil-Restoring Rotation for {crop}:**\n\n* **Phase 1:** Post-harvest organic soil conditioning.\n* **Phase 2:** Plant multi-species cover crops (Clover, Vetch) to actively rebuild biomass and improve low vegetative indices (NDVI: {ndvi:.2f}).\n* **Phase 3:** High-value rotational grain or oilseed to capitalize on restored soil organic carbon."
     
     if priority == "💧 Maximum Water Conservation":
-        verdict = f"🎯 **AI Agronomist Verdict:** For **{crop}** under a water conservation priority, ensure drip-irrigation is integrated to offset the {gpm:.0f} mm seasonal deficit."
+        verdict = f"🎯 **AI Agronomist Verdict:** To prioritize water conservation while growing **{crop}**, deploy precision micro-irrigation and adopt Option A to mitigate the {gpm:.0f} mm seasonal rainfall deficit."
     elif priority == "🌱 Soil Organic Matter Restoration":
-        verdict = f"🎯 **AI Agronomist Verdict:** To restore organic matter while cultivating **{crop}**, mandatory cover cropping between seasons is required to protect against thermal erosion ({temp:.1f} °C)."
+        verdict = f"🎯 **AI Agronomist Verdict:** To restore soil organic matter for **{crop}**, mandatory inter-season cover cropping is required to protect against thermal degradation under {temp:.1f} °C surface temperature."
     else:
-        verdict = f"🎯 **AI Agronomist Verdict:** Balancing market profit for **{crop}** with long-term soil health under a {risk:.1f}% degradation risk index."
+        verdict = f"🎯 **AI Agronomist Verdict:** Maximizing market profitability for **{crop}** while maintaining ecological sustainability against a {risk:.1f}% soil degradation risk index."
         
     return analysis_text, opt_a, opt_b, verdict
 
@@ -120,22 +111,22 @@ st.sidebar.write("🎛️ **Option C: Manual Adjustment**")
 lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
 lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
-# РАСШИРЕННЫЙ СПИСОК РАСТЕНИЙ С ВОЗМОЖНОСТЬЮ ВВОДА ЛЮБОГО ВАРИАНТА
-all_crops_database = [
-    "Cotton (Хлопок)", "Wheat (Пшеница)", "Corn (Кукуруза)", "Soybean (Соя)", 
-    "Barley (Ячмень)", "Rice (Рис)", "Sorghum (Сорго)", "Sunflower (Подсолнечник)", 
-    "Alfalfa (Люцерна)", "Sugar Beet (Сахарная свекла)", "Potato (Картофель)", 
-    "Tomato (Томаты)", "Chickpea (Нут)", "Lentils (Чечевица)", "Rapeseed (Рапс)",
-    "Oats (Овес)", "Millet (Просо)", "Peas (Горох)", "Tobacco (Табак)"
+# COMPREHENSIVE GLOBAL CROP DATABASE IN ENGLISH (SEARCHABLE AUTOCOMPLETE)
+comprehensive_crops = [
+    "Alfalfa", "Almond", "Apple", "Banana", "Barley", "Barley (Winter)", "Beans (Dry)", 
+    "Blueberry", "Broccoli", "Cabbage", "Canola", "Carrot", "Cassava", "Cauliflower", 
+    "Chickpea", "Clover", "Cocoa", "Coconut", "Coffee", "Corn (Maize)", "Cotton", 
+    "Cowpea", "Cucumber", "Eggplant", "Flax", "Garlic", "Grape", "Hemp", "Hops", 
+    "Lentils", "Lettuce", "Mango", "Millet", "Oats", "Olive", "Onion", "Orange", 
+    "Palm Oil", "Peanut", "Peas", "Pepper", "Pineapple", "Potato", "Pumpkin", "Quinoa", 
+    "Rapeseed", "Rice", "Rubber", "Rye", "Safflower", "Sesame", "Sorghum", "Soybean", 
+    "Spinach", "Strawberry", "Sugar Beet", "Sugarcane", "Sunflower", "Sweet Potato", 
+    "Tea", "Tobacco", "Tomato", "Vetch", "Watermelon", "Wheat (Spring)", "Wheat (Winter)", "Yam"
 ]
 
 st.sidebar.markdown("🌱 **Baseline Crop Selection**")
-crop_selection_mode = st.sidebar.radio("Choose selection method:", ["Select from Database", "Type Custom Crop"])
-
-if crop_selection_mode == "Select from Database":
-    current_crop = st.sidebar.selectbox("Select Crop:", all_crops_database)
-else:
-    current_crop = st.sidebar.text_input("Enter any crop name:", value="Wheat")
+st.sidebar.markdown("*(Type letters to search/autocomplete any plant)*")
+current_crop = st.sidebar.selectbox("Search and Select Crop:", comprehensive_crops, index=2)
 
 st.sidebar.header("🎯 Step 2: Farmer Priorities")
 priority = st.sidebar.radio("What is your main priority this season?", 
@@ -222,7 +213,6 @@ if analyze_btn:
         else:
             st.success(f"✅ **AI Status:** Ecosystem is stable for **{current_crop}** (Risk Index: {risk_probability:.1f}%).")
 
-        # Генерация динамических инсайтов с учетом выбранного пользователем растения
         t_analysis, t_opt_a, t_opt_b, t_verdict = generate_crop_ai_analysis(current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority)
 
         st.markdown("---")
