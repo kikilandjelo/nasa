@@ -23,7 +23,7 @@ if 'lon_slider' not in st.session_state:
 if 'last_geo' not in st.session_state:
     st.session_state['last_geo'] = None
 
-# --- MAPS URL PARSER ---
+# --- ROBUST GOOGLE MAPS URL PARSER WITH FALLBACK ---
 def extract_lat_lon_from_url(url):
     url = url.strip()
     known_shortcuts = {
@@ -54,7 +54,7 @@ def extract_lat_lon_from_url(url):
             
     return 40.1438, 47.5769
 
-# --- ML RISK ASSESSMENT MODEL ---
+# --- MACHINE LEARNING RISK ASSESSMENT MODEL ---
 @st.cache_resource
 def train_ai_model():
     X_train = np.array([
@@ -72,24 +72,20 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- АБСОЛЮТНО ДИНАМИЧЕСКИЙ ИИ-ГЕНЕРАТОР ВСЕХ ТЕКСТОВ НА ЛЕТУ ---
-def generate_fully_dynamic_ai_content(crop, gpm, vwc, temp, ndvi, risk, priority):
-    # Генерация анализа для базовой культуры
-    baseline_text = f"The neural network has evaluated continuous monoculture of **{crop}** under live telemetry. GPM precipitation tracking records seasonal rainfall at **{gpm:.0f} mm**, combined with an SMAP volumetric soil moisture index of **{vwc:.1f}% VWC**. Continuous root-zone extraction under ECOSTRESS thermal stress ({temp:.1f} °C) accelerates structural degradation, projecting an AI risk failure index of **{risk:.1f}%**."
+# --- FULLY DYNAMIC AI CONTENT & STRATEGY GENERATOR ---
+def generate_perfect_ai_insights(crop, gpm, vwc, temp, ndvi, risk, priority):
+    baseline_text = f"The neural network evaluated continuous monoculture of **{crop}** under live NASA telemetry. GPM precipitation tracking records seasonal rainfall at **{gpm:.0f} mm**, combined with an SMAP volumetric soil moisture index of **{vwc:.1f}% VWC**. Continuous root-zone extraction under ECOSTRESS thermal stress ({temp:.1f} °C) accelerates structural degradation, projecting an AI risk failure index of **{risk:.1f}%**."
     
-    # Динамическая стратегия водной устойчивости на основе дефицита осадков
     if gpm < 250:
-        water_strat = f"**Strategy A: Extreme Aridity Hydrologic Shield**\n\n* **Core Focus:** Ultra-low moisture retention for **{crop}** replacement.\n* **Crop Sequence:** Post-{crop} ➔ Drought-adapted Pearl Millet ➔ Fallow Legumes.\n* **AI Insight:** Calibrated to withstand severe GPM deficits ({gpm:.0f} mm) by utilizing deep sub-surface moisture reservoirs."
+        water_strat = f"**Strategy A: Extreme Aridity Hydrologic Shield**\n\n* **Core Focus:** Ultra-low moisture retention designed specifically for **{crop}** replacement.\n* **Crop Sequence:** Post-{crop} ➔ Drought-adapted Pearl Millet ➔ Fallow Legumes.\n* **AI Insight:** Calibrated to withstand severe GPM precipitation deficits ({gpm:.0f} mm) by utilizing deep sub-surface moisture reservoirs."
     else:
         water_strat = f"**Strategy A: Drought-Resilient Hydrologic Rotation**\n\n* **Core Focus:** Maximizing water-use efficiency per millimeter of precipitation for **{crop}**.\n* **Crop Sequence:** Post-{crop} ➔ Nitrogen-fixing Chickpea ➔ Deep-root Sorghum.\n* **AI Insight:** Balances moderate SMAP moisture ({vwc:.1f}% VWC) with high-efficiency transpiration cycles."
 
-    # Динамическая стратегия восстановления почвы на основе индекса NDVI
     if ndvi < 0.4:
-        soil_strat = f"**Strategy B: Intensive Biomass & Soil Regeneration**\n\n* **Core Focus:** Rapidly reversing biomass depletion from current low NDVI ({ndvi:.2f}).\n* **Crop Sequence:** Post-{crop} residue retention ➔ Multi-species Cover Crops (Clover/Vetch) ➔ Rotation Corn.\n* **AI Insight:** Eliminates bare-soil windows to halt wind and thermal erosion under {temp:.1f} °C surface temperature."
+        soil_strat = f"**Strategy B: Intensive Biomass & Soil Regeneration**\n\n* **Core Focus:** Rapidly reversing biomass depletion from current low NDVI health indices ({ndvi:.2f}).\n* **Crop Sequence:** Post-{crop} residue retention ➔ Multi-species Cover Crops (Clover/Vetch) ➔ Rotation Corn.\n* **AI Insight:** Eliminates bare-soil windows to halt wind and thermal erosion under {temp:.1f} °C surface temperature."
     else:
         soil_strat = f"**Strategy B: Organic Carbon & Soil Health Enhancement**\n\n* **Core Focus:** Sustaining high soil organic matter following **{crop}** cultivation.\n* **Crop Sequence:** Post-{crop} ➔ Deep-root Alfalfa ➔ High-value Oilseed.\n* **AI Insight:** Protects healthy microbial structures and enhances infiltration capacity."
 
-    # Динамический итоговый вердикт под приоритет фермера
     if priority == "💧 Maximum Water Conservation":
         verdict = f"🎯 **AI Agronomist Final Verdict:** To fulfill your primary goal of **Water Conservation** for **{crop}**, the system strongly recommends deploying **Strategy A**, maximizing output per drop under the recorded {gpm:.0f} mm rainfall constraint."
     elif priority == "🌱 Soil Organic Matter Restoration":
@@ -99,7 +95,7 @@ def generate_fully_dynamic_ai_content(crop, gpm, vwc, temp, ndvi, risk, priority
 
     return baseline_text, water_strat, soil_strat, verdict
 
-# --- KNOWLEDGE BASE ---
+# --- KNOWLEDGE BASE EXPANDER ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
     st.markdown("""
     - **NDVI (Normalized Difference Vegetation Index):** An indicator of plant health based on Landsat/MODIS satellite data.
@@ -107,7 +103,7 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
     - **ECOSTRESS:** An ISS-based instrument measuring land surface temperature to detect plant heat stress before leaves turn brown.
     """)
 
-# --- 1. FARMER PARAMETERS ---
+# --- 1. FARMER PARAMETERS & INPUTS ---
 st.sidebar.header("📍 Step 1: Location & Baseline")
 
 with st.sidebar:
@@ -186,9 +182,9 @@ def fetch_real_nasa_data(lat, lon):
     except Exception as e:
         return {"status": f"Connection Error: {str(e)}", "file_found": False}
 
-# --- 2. DATA FUSION & GLOBAL DETERMINISTIC ALGORITHM ---
+# --- 2. DATA FUSION & ANALYTICAL EXECUTION ---
 if analyze_btn:
-    with st.spinner('Connecting to NASA Earthdata API and running AI spatial analysis...'):
+    with st.spinner('Connecting to NASA Earthdata API and executing real-time spatial AI analysis...'):
         
         nasa_api_result = fetch_real_nasa_data(lat, lon)
         
@@ -242,8 +238,8 @@ if analyze_btn:
         else:
             st.success(f"✅ **AI Status:** Ecosystem is stable for **{current_crop}** (Risk Index: {risk_probability:.1f}%).")
 
-        # Генерация 100% динамического контента на лету
-        t_baseline, t_water, t_soil, t_verdict = generate_fully_dynamic_ai_content(
+        # Dynamic Content Generation
+        t_baseline, t_water, t_soil, t_verdict = generate_perfect_ai_insights(
             current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority
         )
 
@@ -270,6 +266,7 @@ if analyze_btn:
         st.subheader("💡 AI Agronomist Final Verdict")
         st.info(t_verdict)
 
+        # --- INTERACTIVE PYDECK MAP ---
         st.markdown("---")
         st.subheader("🗺 Interactive AI Risk & Location Map")
         st.markdown("🟢 **Green Marker:** Your Exact Location | 🔴 **Red Markers:** AI Regional Risk Assessment Zones")
