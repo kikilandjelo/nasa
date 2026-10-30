@@ -4,3 +4,4 @@ earthaccess
 requests
 streamlit-geolocation
 scikit-learn
+google-generativeai
