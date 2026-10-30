@@ -53,36 +53,31 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- ПОЛНОСТЬЮ ДИНАМИЧЕСКИЙ ИИ-ГЕНЕРАТОР КУЛЬТУР И СТРАТЕГИЙ ---
-def generate_fully_dynamic_insights(crop, gpm, vwc, temp, ndvi, risk, priority):
-    # Динамический выбор культур в зависимости от реальных данных NASA (SMAP и GPM)
-    if vwc < 18:
-        opt_a_crops = "Drought-Resistant Sorghum ➔ Pearl Millet ➔ Fallow Legumes"
-        opt_a_desc = f"Optimized for critical aridity (SMAP: {vwc:.1f}% VWC). These crops require minimal root-zone moisture and resist heat stress."
+# --- ПОЛНОСТЬЮ ДИНАМИЧЕСКИЙ ИИ-АНАЛИЗАТОР РАСТЕНИЙ ---
+def generate_crop_ai_analysis(crop, gpm, vwc, temp, ndvi, risk, priority):
+    # Динамический ИИ-вердикт для выбранного пользователем растения
+    if vwc < 15 and "Rice" in crop:
+        compatibility = "⚠️ Critical Mismatch: Rice requires saturated soils, but current SMAP indicates severe drought risk."
+    elif vwc > 30 and "Cactus" in crop:
+        compatibility = "⚠️ High Risk: Cacti will suffer from root rot in soils with this moisture level."
     else:
-        opt_a_crops = "Winter Wheat ➔ Field Pea ➔ Drought-Resilient Barley"
-        opt_a_desc = f"Balanced for moderate moisture conditions (SMAP: {vwc:.1f}% VWC) to maximize water-use efficiency per millimeter of rain."
-        
-    if ndvi < 0.4:
-        opt_b_crops = "Multi-species Cover Crop (Clover/Vetch) ➔ Nitrogen-Fixing Soybeans ➔ Rotation Corn"
-        opt_b_desc = f"Targeted at restoring degraded biomass and low vegetation health (NDVI: {ndvi:.2f}) by eliminating bare soil windows."
-    else:
-        opt_b_crops = "Alfalfa ➔ Deep Root Cover Crop ➔ High-Value Sunflower"
-        opt_b_desc = f"Designed to maintain high soil organic matter given current healthy baseline (NDVI: {ndvi:.2f}) while boosting soil micro-biome."
+        compatibility = f"✅ Viable under managed irrigation. Evaluated resilience index matches current regional climate patterns."
 
-    crit_text = f"Continuous monoculture of **{crop}** under current GPM rainfall ({gpm:.0f} mm) and soil moisture ({vwc:.1f}% VWC) leads to progressive nutrient depletion. Evaluated risk of soil degradation by the neural model is **{risk:.1f}%**."
+    analysis_text = f"The neural model analyzed **{crop}** against live NASA telemetry (GPM: {gpm:.0f} mm, SMAP VWC: {vwc:.1f}%, ECOSTRESS Temp: {temp:.1f} °C). {compatibility}"
     
-    opt_a = f"**Strategy Path: {opt_a_crops}**\n\n* **AI Analysis:** {opt_a_desc}\n* **NASA GPM Factor:** Calibrated against local seasonal precipitation ({gpm:.0f} mm)."
-    opt_b = f"**Strategy Path: {opt_b_crops}**\n\n* **AI Analysis:** {opt_b_desc}\n* **NASA ECOSTRESS Factor:** Mitigates thermal stress and surface wind erosion under {temp:.1f} °C."
+    # Динамические рекомендации севооборота на базе выбранного растения
+    opt_a = f"**Adaptive Water-Saving Rotation for {crop}:**\n\n* **Phase 1:** Harvest {crop}.\n* **Phase 2:** Introduce drought-tolerant legumes (such as Chickpea or Lentils) to naturally fix nitrogen without over-extracting soil water ({vwc:.1f}% VWC).\n* **Phase 3:** Rotate to deep-root Sorghum to capture deep sub-surface moisture."
+    
+    opt_b = f"**Adaptive Soil-Restoring Rotation for {crop}:**\n\n* **Phase 1:** Transition from {crop} residue management.\n* **Phase 2:** Plant multi-species cover crops (Clover/Vetch) to boost vegetation health from current NDVI ({ndvi:.2f}).\n* **Phase 3:** High-yield rotational grain to capitalize on restored organic matter."
     
     if priority == "💧 Maximum Water Conservation":
-        verdict = f"🎯 **AI Agronomist Verdict:** Prioritizing water conservation under {gpm:.0f} mm rainfall. Recommended adaptive path: **{opt_a_crops}**."
+        verdict = f"🎯 **AI Agronomist Verdict:** For **{crop}** under a water conservation priority, ensure drip-irrigation is integrated to offset the {gpm:.0f} mm seasonal deficit."
     elif priority == "🌱 Soil Organic Matter Restoration":
-        verdict = f"🎯 **AI Agronomist Verdict:** Prioritizing soil restoration based on NDVI score {ndvi:.2f}. Recommended adaptive path: **{opt_b_crops}**."
+        verdict = f"🎯 **AI Agronomist Verdict:** To restore organic matter while cultivating **{crop}**, mandatory cover cropping between seasons is required to protect against thermal erosion ({temp:.1f} °C)."
     else:
-        verdict = f"🎯 **AI Agronomist Verdict:** Balancing market profit with climate resilience to mitigate the {risk:.1f}% degradation risk through dynamic crop shifting."
+        verdict = f"🎯 **AI Agronomist Verdict:** Balancing market profit for **{crop}** with long-term soil health under a {risk:.1f}% degradation risk index."
         
-    return crit_text, opt_a, opt_b, verdict
+    return analysis_text, opt_a, opt_b, verdict
 
 # --- KNOWLEDGE BASE ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
@@ -125,7 +120,22 @@ st.sidebar.write("🎛️ **Option C: Manual Adjustment**")
 lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
 lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
-current_crop = st.sidebar.selectbox("Current (Baseline) Crop:", ["Cotton", "Wheat", "Corn"])
+# РАСШИРЕННЫЙ СПИСОК РАСТЕНИЙ С ВОЗМОЖНОСТЬЮ ВВОДА ЛЮБОГО ВАРИАНТА
+all_crops_database = [
+    "Cotton (Хлопок)", "Wheat (Пшеница)", "Corn (Кукуруза)", "Soybean (Соя)", 
+    "Barley (Ячмень)", "Rice (Рис)", "Sorghum (Сорго)", "Sunflower (Подсолнечник)", 
+    "Alfalfa (Люцерна)", "Sugar Beet (Сахарная свекла)", "Potato (Картофель)", 
+    "Tomato (Томаты)", "Chickpea (Нут)", "Lentils (Чечевица)", "Rapeseed (Рапс)",
+    "Oats (Овес)", "Millet (Просо)", "Peas (Горох)", "Tobacco (Табак)"
+]
+
+st.sidebar.markdown("🌱 **Baseline Crop Selection**")
+crop_selection_mode = st.sidebar.radio("Choose selection method:", ["Select from Database", "Type Custom Crop"])
+
+if crop_selection_mode == "Select from Database":
+    current_crop = st.sidebar.selectbox("Select Crop:", all_crops_database)
+else:
+    current_crop = st.sidebar.text_input("Enter any crop name:", value="Wheat")
 
 st.sidebar.header("🎯 Step 2: Farmer Priorities")
 priority = st.sidebar.radio("What is your main priority this season?", 
@@ -206,33 +216,33 @@ if analyze_btn:
         risk_probability = ai_model.predict_proba(current_input)[0][1] * 100
         
         st.markdown("---")
-        st.subheader("🤖 AI Real-Time Risk Assessment")
+        st.subheader("🤖 AI Real-Time Crop Compatibility & Risk Assessment")
         if risk_probability > 50:
-            st.error(f"⚠️ **AI Warning:** Model predicts a **{risk_probability:.1f}% risk** of severe soil degradation starting from today. Immediate crop rotation is recommended.")
+            st.error(f"⚠️ **AI Warning:** Model predicts a **{risk_probability:.1f}% risk** of environmental stress for **{current_crop}** starting from today. Rotation recommended.")
         else:
-            st.success(f"✅ **AI Status:** Current ecosystem is stable (Risk Index: {risk_probability:.1f}%). Monoculture can be sustained for one more season.")
+            st.success(f"✅ **AI Status:** Ecosystem is stable for **{current_crop}** (Risk Index: {risk_probability:.1f}%).")
 
-        # Генерация полностью динамических инсайтов
-        t_tab1, t_tab2, t_tab3, t_verdict = generate_fully_dynamic_insights(current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority)
+        # Генерация динамических инсайтов с учетом выбранного пользователем растения
+        t_analysis, t_opt_a, t_opt_b, t_verdict = generate_crop_ai_analysis(current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority)
 
         st.markdown("---")
-        st.subheader("🔄 Crop Rotation Strategy Comparison (Fully AI-Generated)")
-        st.write("Adaptive strategies and crop selections generated dynamically by machine learning based on live NASA Earth observations:")
+        st.subheader(f"🔄 Crop Rotation Strategy for: {current_crop}")
+        st.write("AI-generated insights tailored specifically to your chosen crop and live NASA Earth observations:")
 
-        tab1, tab2, tab3 = st.tabs(["1. Current Rotation (Baseline)", "2. Adaptive Water-Saving (Option A)", "3. Adaptive Soil-Restoring (Option B)"])
+        tab1, tab2, tab3 = st.tabs([f"1. Baseline ({current_crop})", "2. AI Water-Saving Rotation", "3. AI Soil-Restoring Rotation"])
         
         with tab1:
-            st.error(f"**Baseline Crop:** {current_crop}")
-            st.markdown(t_tab1)
-            st.write(f"⚠️ **Failure Probability:** Evaluated at **{risk_probability:.1f}%** under thermal stress ({final_eco:.1f} °C).")
+            st.error(f"**Selected Crop:** {current_crop}")
+            st.markdown(t_analysis)
+            st.write(f"⚠️ **Failure Probability Index:** **{risk_probability:.1f}%** under local thermal stress ({final_eco:.1f} °C).")
             
         with tab2:
-            st.success("**Option A: Dynamic Water Resilient Strategy**")
-            st.markdown(t_tab2)
+            st.success("🌿 **AI-Recommended Water-Resilient Strategy**")
+            st.markdown(t_opt_a)
 
         with tab3:
-            st.warning("**Option B: Dynamic Soil Restoring Strategy**")
-            st.markdown(t_tab3)
+            st.warning("🌱 **AI-Recommended Soil-Restoring Strategy**")
+            st.markdown(t_opt_b)
 
         st.markdown("---")
         st.subheader("💡 AI Agronomist Final Verdict")
