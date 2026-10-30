@@ -23,15 +23,16 @@ if 'lon_slider' not in st.session_state:
 if 'last_geo' not in st.session_state:
     st.session_state['last_geo'] = None
 
-# --- ГАРАНТИРОВАННЫЙ РАЗУПАКОВЩИК ЛЮБЫХ GOOGLE MAPS ССЫЛОК ---
+# --- НАДЕЖНЫЙ ПАРСЕР КОРОТКИХ И ПОЛНЫХ ССЫЛОК GOOGLE MAPS ---
 def extract_lat_lon_from_url(url):
     try:
-        # Если ссылка короткая, используем публичный сервис распаковки редиректов без блокировок
-        if "goo.gl" in url or "maps.app.goo.gl" in url:
-            api_unshorten = f"https://unshorten.me/json/{url.strip()}"
-            res = requests.get(api_unshorten, timeout=5).json()
-            if res.get("success"):
-                url = res.get("resolved_url", url)
+        url = url.strip()
+        if "goo.gl" in url:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            # Запрашиваем заголовок перенаправления без загрузки всей страницы
+            response = requests.get(url, headers=headers, allow_redirects=False, timeout=5)
+            if "Location" in response.headers:
+                url = response.headers["Location"]
     except Exception:
         pass
 
