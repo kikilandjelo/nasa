@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import earthaccess
 import re
+import requests
 import numpy as np
 import pydeck as pdk
 from sklearn.ensemble import RandomForestClassifier
@@ -22,12 +23,21 @@ if 'lon_slider' not in st.session_state:
 if 'last_geo' not in st.session_state:
     st.session_state['last_geo'] = None
 
-# --- PARSE LAT/LON FROM GOOGLE MAPS URL ---
+# --- PARSE LAT/LON FROM GOOGLE MAPS URL (С ПОДДЕРЖКОЙ КОРОТКИХ ССЫЛОК) ---
 def extract_lat_lon_from_url(url):
+    try:
+        # Если ссылка короткая (maps.app.goo.gl или goo.gl), автоматически переходим по ней для получения полной ссылки
+        if "goo.gl" in url:
+            response = requests.get(url, allow_redirects=True, timeout=5)
+            url = response.url
+    except Exception:
+        pass
+
     patterns = [
         r'@(-?\d+\.\d+),(-?\d+\.\d+)',
         r'[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)',
-        r'[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)'
+        r'[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)',
+        r'!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)'
     ]
     for pattern in patterns:
         match = re.search(pattern, url)
@@ -94,7 +104,7 @@ if location and location.get('latitude') is not None and location.get('longitude
 
 st.sidebar.markdown("---")
 st.sidebar.write("🗺️ **Option B: Paste Google Maps Link**")
-maps_url = st.sidebar.text_input("Google Maps URL:", placeholder="Paste link here...")
+maps_url = st.sidebar.text_input("Google Maps URL:", placeholder="Paste short or full link here...")
 
 if maps_url:
     m_lat, m_lon = extract_lat_lon_from_url(maps_url)
