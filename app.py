@@ -23,13 +23,19 @@ if 'lon_slider' not in st.session_state:
 if 'last_geo' not in st.session_state:
     st.session_state['last_geo'] = None
 
-# --- PARSE LAT/LON FROM GOOGLE MAPS URL (С ПОДДЕРЖКОЙ КОРОТКИХ ССЫЛОК) ---
+# --- PARSE LAT/LON FROM GOOGLE MAPS URL (УЛУЧШЕННЫЙ ПАРСЕР КОРОТКИХ ССЫЛОК) ---
 def extract_lat_lon_from_url(url):
     try:
-        # Если ссылка короткая (maps.app.goo.gl или goo.gl), автоматически переходим по ней для получения полной ссылки
-        if "goo.gl" in url:
-            response = requests.get(url, allow_redirects=True, timeout=5)
+        if "goo.gl" in url or "maps.app.goo.gl" in url:
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+            response = requests.get(url, headers=headers, allow_redirects=True, timeout=6)
             url = response.url
+            
+            # Если в конечном URL нет координат, ищем их внутри HTML страницы ответа
+            if not any(re.search(p, url) for p in [r'@(-?\d+\.\d+),(-?\d+\.\d+)', r'[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)', r'[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)']):
+                match_html = re.search(r'\[(-?\d+\.\d+),\s*(-?\d+\.\d+)\]', response.text)
+                if match_html:
+                    return float(match_html.group(1)), float(match_html.group(2))
     except Exception:
         pass
 
@@ -279,3 +285,4 @@ if analyze_btn:
         )
 
         st.pydeck_chart(r)
+        
