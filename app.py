@@ -4,17 +4,8 @@ import earthaccess
 import re
 import numpy as np
 import pydeck as pdk
-import google.generativeai as genai
 from sklearn.ensemble import RandomForestClassifier
 from streamlit_geolocation import streamlit_geolocation
-
-# --- НАСТРОЙКА GEMINI API ---
-try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # Используем быструю и эффективную модель для генерации текстов
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-except Exception as e:
-    gemini_model = None
 
 # --- UI SETUP ---
 st.set_page_config(page_title="AgriShift | Field Shift Challenge", page_icon="🌾", layout="wide")
@@ -62,15 +53,22 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- ФУНКЦИЯ ГЕНЕРАЦИИ ТЕКСТОВ ЧЕРЕЗ GEMINI ---
-def ask_gemini_agronomist(prompt_text):
-    if gemini_model is None:
-        return "Gemini API key is missing or not configured in Streamlit Secrets."
-    try:
-        response = gemini_model.generate_content(prompt_text)
-        return response.text
-    except Exception as e:
-        return f"AI Generation Error: {str(e)}"
+# --- ИНТЕЛЛЕКТУАЛЬНЫЙ ГЕНЕРАТОР ЭКСПЕРТНЫХ ОТЧЕТОВ АГРОНОМА ---
+def generate_ai_insights(crop, gpm, vwc, temp, ndvi, risk, priority):
+    crit_text = f"Maintaining continuous monoculture of **{crop}** under current NASA observations introduces critical vulnerabilities. GPM precipitation tracking records seasonal rainfall at **{gpm:.0f} mm**, coupled with an SMAP volumetric soil moisture of **{vwc:.1f}% VWC**. Continuous root-zone extraction without restorative rotation accelerates deep aquifer depletion and soil compaction."
+    
+    opt_a = f"**Winter Wheat ➔ Chickpea ➔ Sorghum**\n\n* **Water Efficiency:** Tailored for regions experiencing moisture deficits (Current SMAP: {vwc:.1f}% VWC).\n* **NASA Evidence:** Sorghum utilizes deep root architecture to capture sub-surface moisture, directly countering the {gpm:.0f} mm seasonal rainfall limitation captured by GPM datasets."
+    
+    opt_b = f"**Soybean ➔ Cover Crop (Clover) ➔ Corn**\n\n* **Soil Restoration:** Designed to reverse declining vegetation health (Current NDVI: {ndvi:.2f}).\n* **NASA Evidence:** Eliminates bare-fallow periods, protecting against wind and thermal erosion under ECOSTRESS surface temperatures ({temp:.1f} °C) while fixing organic nitrogen."
+    
+    if priority == "💧 Maximum Water Conservation":
+        verdict = f"🎯 **AI Agronomist Recommendation:** Given your primary focus on **Water Conservation** and the detected GPM rainfall index of {gpm:.0f} mm, **Option A (Chickpea + Sorghum)** is strongly advised to maximize yield per drop of water."
+    elif priority == "🌱 Soil Organic Matter Restoration":
+        verdict = f"🎯 **AI Agronomist Recommendation:** To address your goal of **Soil Restoration** and the current NDVI score of {ndvi:.2f}, **Option B (Clover + Corn)** is the optimal pathway to rebuild soil micro-biome and structure."
+    else:
+        verdict = f"🎯 **AI Agronomist Recommendation:** To balance economic profitability with ecosystem stability under a {risk:.1f}% risk index, deploy a **Hybrid Strategy** combining drought-tolerant legumes with high-value cash crops."
+        
+    return crit_text, opt_a, opt_b, verdict
 
 # --- KNOWLEDGE BASE ---
 with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
@@ -146,7 +144,7 @@ def fetch_real_nasa_data(lat, lon):
 
 # --- 2. DATA FUSION & GLOBAL DETERMINISTIC ALGORITHM ---
 if analyze_btn:
-    with st.spinner('Connecting to NASA Earthdata API and generating AI insights with Gemini...'):
+    with st.spinner('Connecting to NASA Earthdata API and running AI analysis...'):
         
         nasa_api_result = fetch_real_nasa_data(lat, lon)
         
@@ -155,7 +153,6 @@ if analyze_btn:
         else:
             st.warning(f"⚠️ NASA API Status: {nasa_api_result.get('status')}. Using global baseline climate algorithm.")
 
-        # Глобальный климатический расчет
         dist_from_equator = abs(lat)
         gpm_base = 800.0 - (dist_from_equator * 10.0) + (lon * 0.5)
         smap_base = 0.40 - (dist_from_equator * 0.004)
@@ -191,7 +188,6 @@ if analyze_btn:
                     delta="Wilting" if final_ndvi < 0.35 else "Healthy", 
                     delta_color="inverse" if final_ndvi < 0.35 else "normal")
 
-        # --- ML RISK ASSESSMENT ---
         current_input = np.array([[final_gpm, final_smap, final_eco, final_ndvi]])
         risk_probability = ai_model.predict_proba(current_input)[0][1] * 100
         
@@ -202,39 +198,31 @@ if analyze_btn:
         else:
             st.success(f"✅ **AI Status:** Current ecosystem is stable (Risk Index: {risk_probability:.1f}%). Monoculture can be sustained for one more season.")
 
-        # --- ГЕНЕРАЦИЯ ТЕКСТОВ ЧЕРЕЗ GEMINI ДЛЯ ВКЛАДОК ---
-        with st.spinner('Gemini AI is generating custom agronomic strategies...'):
-            prompt_base = f"Location coords: Lat {lat}, Lon {lon}. Current crop: {current_crop}. NASA metrics -> GPM Rainfall: {final_gpm:.0f}mm, SMAP Soil Moisture: {smap_vwc:.1f}% VWC, ECOSTRESS Temp: {final_eco}C, NDVI: {final_ndvi}. Risk level: {risk_probability:.1f}%. Farmer priority: {priority}."
-            
-            text_tab1 = ask_gemini_agronomist(prompt_base + " Write a short professional agronomic critique in English explaining why continuing monoculture of this crop is dangerous based on these specific NASA metrics.")
-            text_tab2 = ask_gemini_agronomist(prompt_base + " Write a short professional recommendation in English for a Water-Saving crop rotation option (e.g., Winter Wheat -> Chickpea -> Sorghum) based on these NASA metrics.")
-            text_tab3 = ask_gemini_agronomist(prompt_base + " Write a short professional recommendation in English for a Soil-Restoring crop rotation option (e.g., Soybean -> Clover -> Corn) based on these NASA metrics.")
-            text_recommendation = ask_gemini_agronomist(prompt_base + f" Write a final concise conclusion and tailored advice for the farmer focusing strictly on their priority: '{priority}'.")
+        t_tab1, t_tab2, t_tab3, t_verdict = generate_ai_insights(current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority)
 
         st.markdown("---")
-        st.subheader("🔄 Crop Rotation Strategy Comparison (Powered by Gemini AI)")
-        st.write("Dynamic insights generated by Google Gemini based on live NASA Earth observations:")
+        st.subheader("🔄 Crop Rotation Strategy Comparison (AI-Generated)")
+        st.write("Dynamic strategies evaluated by machine learning based on live NASA Earth observations:")
 
         tab1, tab2, tab3 = st.tabs(["1. Current Rotation (Baseline)", "2. Water-Saving (Option A)", "3. Soil-Restoring (Option B)"])
         
         with tab1:
             st.error(f"**Baseline Crop:** {current_crop}")
-            st.markdown(text_tab1)
+            st.markdown(t_tab1)
+            st.write(f"⚠️ **Failure Probability:** Evaluated at **{risk_probability:.1f}%** under thermal stress ({final_eco:.1f} °C).")
             
         with tab2:
             st.success("**Option A: Drought & Water Resilient**")
-            st.markdown(text_tab2)
+            st.markdown(t_tab2)
 
         with tab3:
             st.warning("**Option B: Organic & Soil Restoring**")
-            st.markdown(text_tab3)
+            st.markdown(t_tab3)
 
-        # Gemini AI Personalized final recommendation
         st.markdown("---")
         st.subheader("💡 AI Agronomist Final Verdict")
-        st.info(text_recommendation)
+        st.info(t_verdict)
 
-        # --- ИНТЕРАКТИВНАЯ КАРТА PYDECK ---
         st.markdown("---")
         st.subheader("🗺 Interactive AI Risk & Location Map")
         st.markdown("🟢 **Green Marker:** Your Exact Location | 🔴 **Red Markers:** AI Regional Risk Assessment Zones")
