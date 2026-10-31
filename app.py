@@ -13,7 +13,7 @@ st.set_page_config(page_title="AgriShift | Field Shift Challenge", page_icon="�
 st.title("🌾 AgriShift: AI-Powered Crop Rotation Explorer")
 st.markdown("**NASA Space Apps Challenge 2026 | Category: Field Shift**")
 
-st.info("⚠️ **Disclaimer:** AgriShift is-Decision-Support Tool. AI predictions are based on NASA Earth observations to help identify patterns, but they **do not replace** the expertise of local agronomists and farmer judgment.")
+st.info("⚠️ **Disclaimer:** AgriShift is a Decision-Support Tool. AI predictions are based on NASA Earth observations to help identify patterns, but they **do not replace** the expertise of local agronomists and farmer judgment.")
 
 # --- STATE INITIALIZATION ---
 if 'lat_slider' not in st.session_state:
@@ -26,11 +26,7 @@ if 'last_geo' not in st.session_state:
 # --- ЖЕЛЕЗОБЕТОННЫЙ РАСПОЗНАВАТЕЛЬ ССЫЛОК С ФОЛЛБЕКОМ ---
 def extract_lat_lon_from_url(url):
     url = url.strip()
-    
-    # Прямой словарь-аварийный клапан для вашей короткой ссылки с хакатона
-    known_shortcuts = {
-        "P7d4XgSbmdUncZaK6": (41.3625, 48.5133), # Координаты региона Губа / Quba Palace зоны
-    }
+    known_shortcuts = {"P7d4XgSbmdUncZaK6": (41.3625, 48.5133)}
     
     for key, coords in known_shortcuts.items():
         if key in url:
@@ -55,7 +51,6 @@ def extract_lat_lon_from_url(url):
         if match:
             return float(match.group(1)), float(match.group(2))
             
-    # Абсолютный фоллбек по умолчанию, чтобы приложение никогда не падало
     return 40.1438, 47.5769
 
 # --- ML RISK ASSESSMENT MODEL ---
@@ -76,20 +71,57 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- DYNAMIC AI CROP & STRATEGY GENERATOR ---
+# --- HYPER-DYNAMIC AI CROP & STRATEGY GENERATOR (NASA COMPLIANT) ---
 def generate_crop_ai_analysis(crop, gpm, vwc, temp, ndvi, risk, priority):
-    analysis_text = f"The neural model evaluated **{crop}** against live NASA telemetry (GPM Rainfall: {gpm:.0f} mm, SMAP Soil Moisture: {vwc:.1f}% VWC, ECOSTRESS Temp: {temp:.1f} °C, NDVI Health: {ndvi:.2f}). Based on current environmental stress and regional microclimate, cultivating **{crop}** presents a dynamic risk index of {risk:.1f}%."
+    # Dynamic crop selection based on explicit weather thresholds
+    if gpm < 400:
+        legume = "Tepary Beans or Chickpea (Drought-hardy)"
+        grain = "Pearl Millet or Sorghum"
+        cover = "Deep-root Vetch"
+        water_context = "severe rainfall deficits"
+    elif temp > 30:
+        legume = "Cowpea / Black-eyed peas (Heat-tolerant)"
+        grain = "Heat-resistant Maize"
+        cover = "Sunn Hemp"
+        water_context = "high evapotranspiration rates"
+    else:
+        legume = "Field Peas or Lentils"
+        grain = "Winter Wheat or Barley"
+        cover = "Clover or Winter Rye"
+        water_context = "temperate moisture availability"
+
+    # Strategy 1: Baseline
+    analysis_text = f"""
+    * **Current Status:** The neural model evaluated **{crop}** against live NASA telemetry.
+    * **Evidence:** GPM Rainfall ({gpm:.0f} mm), SMAP Soil Moisture ({vwc:.1f}% VWC), ECOSTRESS Temp ({temp:.1f} °C).
+    * **Risks for Local Review:** Cultivating monoculture {crop} under these conditions presents a degradation risk index of {risk:.1f}%. Pest cycles remain undisrupted.
+    * **Information Gaps:** Model lacks ground-truth data on local sub-surface groundwater levels and exact soil macronutrients (N-P-K).
+    """
     
-    opt_a = f"**AI-Optimized Water-Saving Rotation for {crop}:**\n\n* **Phase 1:** Harvest baseline {crop} and initiate residue retention.\n* **Phase 2:** Introduce drought-tolerant legumes (e.g., Chickpea, Lentils, or Cowpeas) to fix soil nitrogen without over-depleting the root zone ({vwc:.1f}% VWC).\n* **Phase 3:** Transition to deep-root Sorghum or Millet to maximize water-use efficiency under {gpm:.0f} mm rainfall constraints."
+    # Strategy 2: Water-Saving
+    opt_a = f"""
+    **AI-Optimized Water-Saving Rotation:**
+    * **Path:** Harvest {crop} ➔ {legume} ➔ {grain}
+    * **Why it was suggested:** Designed to mitigate {water_context} indicated by NASA GPM ({gpm:.0f} mm). 
+    * **Benefits:** {legume} fixes nitrogen without over-depleting the root zone ({vwc:.1f}% VWC). {grain} maximizes water-use efficiency.
+    * **Risks for Local Review:** Farmer must verify if local market demand exists for {grain}, and if existing machinery can harvest {legume}.
+    """
     
-    opt_b = f"**AI-Optimized Soil-Restoring Rotation for {crop}:**\n\n* **Phase 1:** Post-harvest organic soil conditioning.\n* **Phase 2:** Plant multi-species cover crops (Clover, Vetch) to actively rebuild biomass and improve low vegetative indices (NDVI: {ndvi:.2f}).\n* **Phase 3:** High-value rotational grain or oilseed to capitalize on restored soil organic carbon."
+    # Strategy 3: Soil-Restoring
+    opt_b = f"""
+    **AI-Optimized Soil-Restoring Rotation:**
+    * **Path:** Transition from {crop} ➔ {cover} ➔ High-Value Rotational Grain
+    * **Why it was suggested:** Aimed at rebuilding biomass to improve the current vegetative health index (NDVI: {ndvi:.2f}).
+    * **Benefits:** {cover} acts as a multi-species cover crop, actively restoring soil organic carbon and preventing thermal erosion under {temp:.1f} °C.
+    * **Information Gaps:** Satellite NDVI cannot distinguish between healthy crop canopy and invasive weed canopy; visual farm inspection is required.
+    """
     
     if priority == "💧 Maximum Water Conservation":
-        verdict = f"🎯 **AI Agronomist Verdict:** To prioritize water conservation while growing **{crop}**, deploy precision micro-irrigation and adopt Option A to mitigate the {gpm:.0f} mm seasonal rainfall deficit."
+        verdict = f"🎯 **AI Agronomist Verdict:** Prioritizing water conservation. Immediate integration of {grain} is advised to offset the {gpm:.0f} mm rainfall constraint."
     elif priority == "🌱 Soil Organic Matter Restoration":
-        verdict = f"🎯 **AI Agronomist Verdict:** To restore soil organic matter for **{crop}**, mandatory inter-season cover cropping is required to protect against thermal degradation under {temp:.1f} °C surface temperature."
+        verdict = f"🎯 **AI Agronomist Verdict:** Prioritizing soil health. Deploy {cover} during the bare-field period to protect against {temp:.1f} °C surface temperatures."
     else:
-        verdict = f"🎯 **AI Agronomist Verdict:** Maximizing market profitability for **{crop}** while maintaining ecological sustainability against a {risk:.1f}% soil degradation risk index."
+        verdict = f"🎯 **AI Agronomist Verdict:** Balancing market profitability of {crop} with long-term ecological resilience against a {risk:.1f}% failure risk."
         
     return analysis_text, opt_a, opt_b, verdict
 
@@ -99,6 +131,7 @@ with st.expander("📚 NASA Scientific Dictionary (Click to expand)"):
     - **NDVI (Normalized Difference Vegetation Index):** An indicator of plant health based on Landsat/MODIS satellite data.
     - **SMAP (Soil Moisture Active Passive):** A NASA mission measuring the amount of water in the top layer of soil.
     - **ECOSTRESS:** An ISS-based instrument measuring land surface temperature to detect plant heat stress before leaves turn brown.
+    - **GPM (Global Precipitation Measurement):** Network of satellites measuring Earth's rain and snowfall.
     """)
 
 # --- 1. FARMER PARAMETERS ---
@@ -134,7 +167,7 @@ st.sidebar.write("🎛️ **Option C: Manual Adjustment**")
 lat = st.sidebar.slider("Latitude", -90.0, 90.0, key='lat_slider')
 lon = st.sidebar.slider("Longitude", -180.0, 180.0, key='lon_slider')
 
-# COMPREHENSIVE GLOBAL CROP DATABASE IN ENGLISH (SEARCHABLE AUTOCOMPLETE)
+# COMPREHENSIVE GLOBAL CROP DATABASE IN ENGLISH
 comprehensive_crops = [
     "Alfalfa", "Almond", "Apple", "Banana", "Barley", "Barley (Winter)", "Beans (Dry)", 
     "Blueberry", "Broccoli", "Cabbage", "Canola", "Carrot", "Cassava", "Cauliflower", 
@@ -239,22 +272,21 @@ if analyze_btn:
         t_analysis, t_opt_a, t_opt_b, t_verdict = generate_crop_ai_analysis(current_crop, final_gpm, smap_vwc, final_eco, final_ndvi, risk_probability, priority)
 
         st.markdown("---")
-        st.subheader(f"🔄 Crop Rotation Strategy for: {current_crop}")
-        st.write("AI-generated insights tailored specifically to your chosen crop and live NASA Earth observations:")
+        st.subheader(f"🔄 Crop Rotation Strategy Comparison")
+        st.write("AI-generated insights explicitly addressing NASA Challenge objectives (Evidence, Benefits, Info Gaps, Risks):")
 
         tab1, tab2, tab3 = st.tabs([f"1. Baseline ({current_crop})", "2. AI Water-Saving Rotation", "3. AI Soil-Restoring Rotation"])
         
         with tab1:
-            st.error(f"**Selected Crop:** {current_crop}")
+            st.error(f"**Strategy 1: Monoculture ({current_crop})**")
             st.markdown(t_analysis)
-            st.write(f"⚠️ **Failure Probability Index:** **{risk_probability:.1f}%** under local thermal stress ({final_eco:.1f} °C).")
             
         with tab2:
-            st.success("🌿 **AI-Recommended Water-Resilient Strategy**")
+            st.success("**Strategy 2: Drought Mitigation**")
             st.markdown(t_opt_a)
 
         with tab3:
-            st.warning("🌱 **AI-Recommended Soil-Restoring Strategy**")
+            st.warning("**Strategy 3: Biomass Recovery**")
             st.markdown(t_opt_b)
 
         st.markdown("---")
