@@ -98,13 +98,13 @@ def train_ai_model():
 
 ai_model = train_ai_model()
 
-# --- DEEPLY DYNAMIC CROP & PRIORITY GENERATOR (FULL ENGLISH) ---
+# --- DYNAMIC CROP GENERATOR ---
 def generate_crop_ai_analysis(crop, gpm, vwc, temp, ndvi, risk, priority):
     water_intensive = ["Rice", "Sugarcane", "Banana", "Cotton", "Tea", "Coffee", "Watermelon"]
     drought_hardy = ["Sorghum", "Millet", "Chickpea", "Quinoa", "Olive", "Almond", "Cassava"]
     
     if crop in water_intensive and gpm < 700:
-        crop_context = f"**CRITICAL MISMATCH:** **{crop}** requires intensive irrigation. Precipitation is only {gpm:.0f} mm/year."
+        crop_context = f"**CRITICAL MISMATCH:** **{crop}** is highly water-intensive. Precipitation is only {gpm:.0f} mm/year."
         risk = min(98.5, risk + 40.0)
     elif crop in drought_hardy and gpm > 1200:
         crop_context = f"**WARNING:** **{crop}** prefers arid conditions. High rainfall ({gpm:.0f} mm/year) increases root rot risk."
@@ -116,31 +116,21 @@ def generate_crop_ai_analysis(crop, gpm, vwc, temp, ndvi, risk, priority):
         crop_context = f"**Viability Status:** Cultivating **{crop}** is climatically viable, but monitor NDVI ({ndvi:.2f})."
         risk = max(5.0, risk - 15.0)
 
-    if priority == "💧 Maximum Water Conservation":
-        strat_focus = "Focus on minimizing irrigation, adopting precision drip irrigation, and introducing drought-tolerant legumes."
-        opt_a = f"**Water-Saving Rotation:** Harvest {crop} ➔ Tepary Beans (Nitrogen fixation with 40% less water) ➔ Pearl Millet (Deep-root drought defense under {gpm:.0f} mm GPM)."
-        opt_b = f"**Moisture Retention Cover:** Implement residue retention and drought-tolerant cover crops to lock in existing soil moisture ({vwc:.1f}% VWC)."
-        verdict = f"🎯 **AI Verdict (Water Priority):** Given the precipitation deficit ({gpm:.0f} mm), shift to drought-resistant crop rotation to preserve soil moisture horizons."
-        
-    elif priority == "🌱 Soil Organic Matter Restoration":
-        strat_focus = "Focus on active humus restoration, green manures, and mitigating thermal soil degradation."
-        opt_a = f"**Soil Restoration Rotation:** Harvest {crop} ➔ Multi-species Cover Crop Mix (Clover & Vetch) ➔ High-biomass Grain."
-        opt_b = f"**Biomass Recovery:** Transition to No-Till management with aggressive residue mulching to shield soil from {temp:.1f} °C surface temperature."
-        verdict = f"🎯 **AI Verdict (Soil Priority):** To restore soil health after {crop}, planting cover crops is mandatory to raise the NDVI index from {ndvi:.2f} and protect organic matter."
-        
-    else: # Maximum Market Profit
-        strat_focus = "Focus on maximizing crop margin, marketable yield quality, and economic returns."
-        opt_a = f"**Profit-Optimized Rotation:** Harvest {crop} ➔ High-Value Rotational Oilseed / Cash Crop ➔ Precision-fertilized Grain."
-        opt_b = f"**Yield Protection:** Use targeted nutrient management and pest-disruption sequencing to ensure Grade-A market quality despite a risk index of {risk:.1f}%."
-        verdict = f"🎯 **AI Verdict (Profit Priority):** Crop failure risk is {risk:.1f}%. To maintain profitability, utilize targeted fertilizer application and high-value cash crops in the secondary season."
-
     analysis_text = f"""
     * **AI Diagnostic:** Evaluated **{crop}** against live regional telemetry.
-    * **Active Farmer Strategy:** {strat_focus}
     * **Evidence:** {crop_context}
     * **Calculated Risk:** **{risk:.1f}% failure probability**.
     """
+    opt_a = f"**Resource Rotation:** Harvest {crop} ➔ Drought-tolerant Legume ➔ Deep-root Grain to mitigate regional water deficit."
+    opt_b = f"**Biomass Recovery:** Transition to multi-species cover crops to rebuild organic matter and stabilize local soil indices."
     
+    if priority == "💧 Maximum Water Conservation":
+        verdict = f"🎯 **AI Verdict:** Prioritize water conservation to offset the {gpm:.0f} mm regional rainfall constraint."
+    elif priority == "🌱 Soil Organic Matter Restoration":
+        verdict = f"🎯 **AI Verdict:** Deploy cover cropping across the regional grid to shield topsoil from thermal evaporation."
+    else:
+        verdict = f"🎯 **AI Verdict:** Risk index is {risk:.1f}%. Adjust fertilizer inputs according to regional ML vulnerability mapping."
+        
     return analysis_text, opt_a, opt_b, verdict, risk
 
 # --- UI INPUTS ---
@@ -216,13 +206,13 @@ if analyze_btn:
         st.markdown("---")
         st.subheader("🤖 Machine Learning Risk Assessment")
         if final_risk > 60:
-            st.error(f"⚠️ **AI Warning:** Model predicts a **{final_risk:.1f}% risk** for **{current_crop}** under current priority ({priority}).")
+            st.error(f"⚠️ **AI Warning:** Model predicts a **{final_risk:.1f}% risk** for **{current_crop}**.")
         else:
             st.success(f"✅ **AI Status:** Ecosystem stable for **{current_crop}** (Risk: {final_risk:.1f}%).")
 
         st.markdown("---")
-        st.subheader(f"🔄 Crop Rotation Strategy Comparison (Optimized for: {priority})")
-        tab1, tab2, tab3 = st.tabs([f"1. Baseline ({current_crop})", "2. Optimized Strategy A", "3. Optimized Strategy B"])
+        st.subheader(f"🔄 Crop Rotation Strategy Comparison")
+        tab1, tab2, tab3 = st.tabs([f"1. Baseline ({current_crop})", "2. Water-Saving Rotation", "3. Soil-Restoring Rotation"])
         with tab1: st.error(t_analysis)
         with tab2: st.success(t_opt_a)
         with tab3: st.warning(t_opt_b)
@@ -231,10 +221,10 @@ if analyze_btn:
         st.subheader("💡 AI Agronomist Final Verdict")
         st.info(t_verdict)
 
-        # --- PROFESSIONAL 3D COLUMN MAP (SAFE DARK STYLE) ---
+        # --- MATRIX SCAN FOR MAP (РЕАЛЬНОЕ СКАНИРОВАНИЕ РЕГИОНА) ---
         st.markdown("---")
-        st.subheader("🗺 Regional ML Vulnerability 3D Heatmap")
-        st.markdown("Dark-mode satellite analytics: **3D columns represent regional failure risk levels** calculated by Random Forest across spatial nodes.")
+        st.subheader("🗺 Regional ML Vulnerability Heatmap (Grid Scan)")
+        st.markdown("🟢 **Low Risk Zones** | 🔴 **High Vulnerability Hotspots (Scanned via ML)**")
 
         grid_lats = np.linspace(lat - 0.5, lat + 0.5, 5)
         grid_lons = np.linspace(lon - 0.5, lon + 0.5, 5)
@@ -242,6 +232,7 @@ if analyze_btn:
         map_points = []
         for glat in grid_lats:
             for glon in grid_lons:
+                # Математическое вычисление локального вариативного риска для каждой точки сетки
                 loc_gpm = max(50, final_gpm + np.sin(glat*10)*200)
                 loc_smap = max(0.05, final_smap + np.cos(glon*10)*0.1)
                 loc_eco = final_eco + (glat - lat)*5
@@ -251,35 +242,19 @@ if analyze_btn:
                 pt_risk = ai_model.predict_proba(pt_input)[0][1] * 100
                 
                 is_center = (glat == lat and glon == lon)
-                color = [0, 255, 120, 240] if is_center else ([255, 50, 50, 220] if pt_risk > 50 else [50, 200, 100, 180])
+                color = [0, 255, 120, 220] if is_center else ([255, 50, 50, 180] if pt_risk > 50 else [50, 200, 100, 140])
+                radius = 25000 if is_center else 12000
                 
                 map_points.append({
                     'lat': glat, 'lon': glon,
                     'risk': pt_risk,
                     'color': color,
-                    'type': 'Selected Farm Location' if is_center else f'Regional Grid Node (Risk: {pt_risk:.1f}%)'
+                    'size': radius,
+                    'type': 'Selected Farm' if is_center else f'Scanned Grid Node (Risk: {pt_risk:.1f}%)'
                 })
 
         map_data = pd.DataFrame(map_points)
-        
-        layer = pdk.Layer(
-            "ColumnLayer",
-            data=map_data,
-            get_position='[lon, lat]',
-            get_elevation='risk * 250',
-            elevation_scale=50,
-            radius=12000,
-            get_fill_color='color',
-            pickable=True,
-            auto_highlight=True,
-        )
-
-        view_state = pdk.ViewState(latitude=lat, longitude=lon, zoom=6, pitch=45)
-        
-        r = pdk.Deck(
-            layers=[layer],
-            initial_view_state=view_state,
-            map_style="mapbox://styles/mapbox/dark-v10", # Безопасный и стабильный темный стиль карты
-            tooltip={"text": "{type}\nCalculated Risk: {risk:.1f}%"}
-        )
+        layer = pdk.Layer("ScatterplotLayer", map_data, get_position="[lon, lat]", get_color="color", get_radius="size", pickable=True, auto_highlight=True)
+        view_state = pdk.ViewState(latitude=lat, longitude=lon, zoom=6, pitch=0)
+        r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{type}\nRisk: {risk:.1f}%"})
         st.pydeck_chart(r)
