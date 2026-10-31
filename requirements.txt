@@ -4,3 +4,5 @@ earthaccess
 requests
 streamlit-geolocation
 scikit-learn
+pydeck
+numpy
